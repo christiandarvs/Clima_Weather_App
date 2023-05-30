@@ -1,4 +1,4 @@
-import 'package:clima_app/screens/clima_page.dart';
+import 'package:clima_app/screens/loading_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(const MyApp());
@@ -10,9 +10,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Material App',
-      home: const ClimaPage(),
+      home: const LoadingScreen(),
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
+      theme: ThemeData.dark(useMaterial3: true),
     );
   }
 }
