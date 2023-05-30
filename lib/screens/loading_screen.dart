@@ -1,5 +1,9 @@
+import 'package:clima_app/screens/location_screen.dart';
+import 'package:clima_app/services/location.dart';
+import 'package:clima_app/services/networking.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import '../utilities/constant.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -8,53 +12,49 @@ class LoadingScreen extends StatefulWidget {
   State<LoadingScreen> createState() => _LoadingScreenState();
 }
 
-class _LoadingScreenState extends State<LoadingScreen> {
-  double? latitude;
-  double? longitude;
+class _LoadingScreenState extends State<LoadingScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController spinnerController;
+
   @override
   void initState() {
     super.initState();
-    getLocation();
+    getLocationData();
+    spinnerController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 5));
   }
 
-  void getLocation() async {
-    LocationPermission permission = await Geolocator.requestPermission();
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.bestForNavigation);
-    if (permission == LocationPermission.whileInUse ||
-        permission == LocationPermission.always) {
-      setState(() {
-        latitude = position.latitude;
-        longitude = position.longitude;
-      });
-    }
-    debugPrint('$position');
-    debugPrint('${position.latitude}');
-    debugPrint('${position.longitude}');
+  void getLocationData() async {
+    Location location = Location();
+    await location.getLocation();
+
+    NetworkHelper networkHelper = NetworkHelper(
+        url:
+            'https://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&appid=$apiKey&units=metric');
+    var weatherData = await networkHelper.getData();
+
+    Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LocationScreen(locationWeather: weatherData),
+        ));
+  }
+
+  @override
+  void dispose() {
+    spinnerController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    String myMargin = '20';
-    double? convert;
-    try {
-      convert = double.parse(myMargin);
-    } catch (e) {
-      debugPrint('$e');
-    }
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: Container(
-            color: Colors.pink.shade200,
-            constraints: const BoxConstraints.expand(),
-            margin: EdgeInsets.all(convert ?? 50),
-            child: Column(
-              children: [
-                Text('Latitude: $latitude'),
-                Text('Longitude: $longitude'),
-              ],
-            ),
+          child: SpinKitDoubleBounce(
+            controller: spinnerController,
+            size: 100,
+            color: Colors.white,
           ),
         ),
       ),
