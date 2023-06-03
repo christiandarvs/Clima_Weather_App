@@ -1,8 +1,10 @@
+import 'package:clima_app/screens/city_screen.dart';
+import 'package:clima_app/services/weather.dart';
 import 'package:clima_app/utilities/constant.dart';
 import 'package:flutter/material.dart';
 
 class LocationScreen extends StatefulWidget {
-  final Map locationWeather;
+  final locationWeather;
   const LocationScreen({super.key, required this.locationWeather});
 
   @override
@@ -10,6 +12,13 @@ class LocationScreen extends StatefulWidget {
 }
 
 class _LocationScreenState extends State<LocationScreen> {
+  WeatherModel weatherModel = WeatherModel();
+  late String weather;
+  late String weatherDescription;
+  late String cityName;
+  late String weatherIcon;
+  late String weatherMessage;
+  late int temperature;
   @override
   void initState() {
     super.initState();
@@ -17,19 +26,23 @@ class _LocationScreenState extends State<LocationScreen> {
   }
 
   void updateUI(dynamic weatherData) {
+    if (weatherData == null) {
+      temperature = 0;
+      weatherIcon = 'ERROR';
+      weatherMessage = 'Unable to get weather data';
+      cityName = '';
+      return;
+    }
     weather = weatherData['weather'][0]['main'];
     weatherDescription = weatherData['weather'][0]['description'];
     cityName = weatherData['name'];
-    temperature = weatherData['main']['temp'];
-    debugPrint(weather);
-    debugPrint(weatherDescription);
-    debugPrint(cityName);
+    double temp = weatherData['main']['temp'];
+    temperature = temp.toInt();
+    var condition = weatherData['weather'][0]['id'];
+    weatherIcon = weatherModel.getWeatherIcon(condition);
+    weatherMessage = weatherModel.getMessage(temperature);
   }
 
-  String weather = '';
-  String weatherDescription = '';
-  String cityName = '';
-  double temperature = 0;
   @override
   Widget build(BuildContext context) {
     updateUI(widget.locationWeather);
@@ -55,8 +68,10 @@ class _LocationScreenState extends State<LocationScreen> {
                   children: [
                     IconButton(
                         onPressed: () async {
+                          var weatherData =
+                              await weatherModel.getLocationWeather();
                           setState(() {
-                            // updateUI(weatherData);
+                            updateUI(weatherData);
                           });
                         },
                         icon: const Icon(
@@ -64,7 +79,20 @@ class _LocationScreenState extends State<LocationScreen> {
                           size: 50,
                         )),
                     IconButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          var typedName = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CityScreen(),
+                              ));
+                          if (typedName != null) {
+                            var weatherData =
+                                await weatherModel.getCityWeather(typedName);
+                            setState(() {
+                              updateUI(weatherData);
+                            });
+                          }
+                        },
                         icon: const Icon(
                           Icons.location_city,
                           size: 50,
@@ -82,8 +110,8 @@ class _LocationScreenState extends State<LocationScreen> {
                       const SizedBox(
                         width: 10,
                       ),
-                      const Text(
-                        '☀️',
+                      Text(
+                        weatherIcon,
                         style: kConditionTextStyle,
                       )
                     ],
@@ -92,7 +120,7 @@ class _LocationScreenState extends State<LocationScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 15),
                   child: Text(
-                    '${weatherDescription[0].toUpperCase()}${weatherDescription.substring(1)} in $cityName',
+                    '$weatherMessage in $cityName',
                     textAlign: TextAlign.right,
                     style: kMessageTextStyle,
                   ),
