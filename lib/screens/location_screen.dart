@@ -13,12 +13,12 @@ class LocationScreen extends StatefulWidget {
 
 class _LocationScreenState extends State<LocationScreen> {
   WeatherModel weatherModel = WeatherModel();
-  late String weather;
-  late String weatherDescription;
-  late String cityName;
-  late String weatherIcon;
-  late String weatherMessage;
-  late int temperature;
+  String weather = '';
+  String weatherDescription = '';
+  String cityName = '';
+  String weatherIcon = '';
+  String weatherMessage = '';
+  int temperature = 0;
   @override
   void initState() {
     super.initState();
@@ -28,7 +28,7 @@ class _LocationScreenState extends State<LocationScreen> {
   void updateUI(dynamic weatherData) {
     if (weatherData == null) {
       temperature = 0;
-      weatherIcon = 'ERROR';
+      weatherIcon = 'Error';
       weatherMessage = 'Unable to get weather data';
       cityName = '';
       return;
@@ -70,6 +70,7 @@ class _LocationScreenState extends State<LocationScreen> {
                         onPressed: () async {
                           var weatherData =
                               await weatherModel.getLocationWeather();
+
                           setState(() {
                             updateUI(weatherData);
                           });
@@ -85,9 +86,11 @@ class _LocationScreenState extends State<LocationScreen> {
                               MaterialPageRoute(
                                 builder: (context) => const CityScreen(),
                               ));
+
                           if (typedName != null) {
                             var weatherData =
                                 await weatherModel.getCityWeather(typedName);
+                            print(weatherData);
                             setState(() {
                               updateUI(weatherData);
                             });
@@ -133,11 +136,3 @@ class _LocationScreenState extends State<LocationScreen> {
     );
   }
 }
-
-
-//     final int condition = weatherData['weather'][0]['id'];
-//     debugPrint('Temperature: $temperature');
-//     debugPrint('Weather: $weather');
-//     debugPrint('Weather Description: $weatherDescription');
-//     debugPrint('City Name: $cityName');
-//     debugPrint('Condition: $condition');

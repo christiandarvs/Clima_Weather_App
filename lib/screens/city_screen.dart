@@ -9,7 +9,7 @@ class CityScreen extends StatefulWidget {
 }
 
 class _CityScreenState extends State<CityScreen> {
-  String cityName = '';
+  String? cityName;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,9 @@ class _CityScreenState extends State<CityScreen> {
               ),
               ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context, cityName);
+                    setState(() {
+                      Navigator.pop(context, cityName);
+                    });
                   },
                   child: const Text('Get Weather'))
             ],
